@@ -211,7 +211,13 @@ class MusicNotationPainter extends CustomPainter {
                   : a.midiNumberWithoutAccidental.compareTo(b.midiNumber),
         );
 
-    final accidentalsWidth = drawAccidentals(sortedNoteList, canvas, size, startDx);
+    final accidentalsWidth = drawAccidentals(
+      sortedNoteList,
+      canvas,
+      size,
+      startDx,
+      color: musicalValue.color,
+    );
     var noteWidth = 0.0;
 
     var isPreviousRotatedVertical = false;
@@ -243,6 +249,7 @@ class MusicNotationPainter extends CustomPainter {
           indexFromClefFirstSpace: noteIndexDifference,
           isHorizontalRotated: isHorizontalRotated,
           isVerticalRotated: isVerticalRotated,
+          color: musicalValue.color,
         );
         if (isRest) break;
       }
@@ -264,13 +271,20 @@ class MusicNotationPainter extends CustomPainter {
         isRest: isRest,
         indexFromClefFirstSpace: 0,
         isOnLine: true,
+        color: musicalValue.color,
       );
     }
     return noteWidth + accidentalsWidth;
   }
 
   /// returns the width of the accidentals
-  double drawAccidentals(List<MidiNote> sortedNoteList, Canvas canvas, Size size, double dx) {
+  double drawAccidentals(
+    List<MidiNote> sortedNoteList,
+    Canvas canvas,
+    Size size,
+    double dx, {
+    Color? color,
+  }) {
     var notesWithAccidentals = sortedNoteList.where((e) => e.accidental != null).toList();
     var width = _measureLinePainter.width;
     canvas.save();
@@ -285,6 +299,7 @@ class MusicNotationPainter extends CustomPainter {
       final accidentalPainter = noteTextPainter(
         note.accidental!.symbol,
         fontSize: _fontSize(size.height) * 0.8,
+        color: color,
       )..layout(maxWidth: size.width);
       accidentalPainter.paint(canvas, Offset.zero);
       canvas.restore();
@@ -308,8 +323,9 @@ class MusicNotationPainter extends CustomPainter {
     bool isVerticalRotated = false,
     bool extraLine = false,
     bool isOnLine = true,
+    Color? color,
   }) {
-    final notePainter = noteTextPainter(noteText, fontSize: _fontSize(size.height))
+    final notePainter = noteTextPainter(noteText, fontSize: _fontSize(size.height), color: color)
       ..layout(maxWidth: size.width);
     final noteYOffset = isRest ? 0.0 : indexFromClefFirstSpace * _noteSpaceHeight;
     canvas.save();
@@ -480,7 +496,7 @@ class MusicNotationPainter extends CustomPainter {
     return TextPainter(
       text: TextSpan(
         text: text,
-        style: noteTextStyle(fontSize: fontSize, isBold: isBold, color: color),
+        style: noteTextStyle(fontSize: fontSize, isBold: isBold, color: color ?? this.color),
       ),
       textDirection: TextDirection.ltr,
       textAlign: TextAlign.start,
