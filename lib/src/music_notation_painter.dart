@@ -225,7 +225,7 @@ class MusicNotationPainter extends CustomPainter {
 
     final noteSymbol = musicalValue.duration.symbol(musicalValue.type);
 
-    if (!isRest) {
+    if (!isRest && musicalValue.midiNotes.isNotEmpty) {
       for (var i = 0; i < sortedNoteList.length; i++) {
         final note = sortedNoteList[i];
         final noteIndexDifference = calculateNoteIndexDifferenceWithClefsFirstSpaceMidiNote(note);
@@ -251,7 +251,6 @@ class MusicNotationPainter extends CustomPainter {
           isVerticalRotated: isVerticalRotated,
           color: musicalValue.color,
         );
-        if (isRest) break;
       }
       drawExtraLines(
         canvas: canvas,
