@@ -6,6 +6,11 @@
   Si♭ yalnız donanımda görünür), donanımı bozan arızasız nota **natürel**
   alır (Si♮). Donanımsız (`KeySignature.none`) dizeklerde davranış
   değişmedi. Galeri 48-49 + mürekkep ölçen regresyon testleri eklendi.
+* **Dikkat (davranış değişikliği):** `MidiNote`'ta aksidan **perdenin
+  parçasıdır** — donanımın perdeyi ima etmesine güvenilemez. Donanımlı bir
+  dizekte nota arızasız verilirse artık donanımı bozduğu okunur ve natürel
+  çizilir. Notalar açıkça yazılmalı (`KeySignature.spellDiatonic` yardımcı
+  olur); galeri 39 buna göre güncellendi.
 
 ## 0.3.1
 

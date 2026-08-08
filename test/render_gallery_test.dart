@@ -880,7 +880,11 @@ void main() {
           NotationMeasure.singles([
             _v(MusicalDuration.quarter, [_n(5, 4)]), // La4
             _v(MusicalDuration.quarter, [_n(6, 4)]), // Si4
-            _v(MusicalDuration.quarter, [_n(0, 5)]), // Do♯5 (donanımdan)
+            // Do♯5: arıza **notanın kendisine** yazılır (MidiNote'ta aksidan
+            // perdenin parçasıdır); painter donanım zaten yazdığı için nota
+            // önüne ikinci bir ♯ çizmez. Arızasız Do5 verilseydi donanımı
+            // bozardı ve natürel alırdı.
+            _v(MusicalDuration.quarter, [_n(0, 5, MusicalAccidental.sharp)]),
             _v(MusicalDuration.quarter, [_n(2, 5)]), // Mi5
           ]),
         ],
