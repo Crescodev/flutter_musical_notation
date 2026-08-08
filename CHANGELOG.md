@@ -1,3 +1,12 @@
+## 0.4.1
+
+* **Donanım farkında aksidanlar.** Nota önü aksidanları artık
+  `KeySignature.writtenAccidentalFor` (flutter_music_core 0.0.4) kuralıyla
+  çiziliyor: donanımın yazdığı arıza nota önünde tekrarlanmaz (Fa majörde
+  Si♭ yalnız donanımda görünür), donanımı bozan arızasız nota **natürel**
+  alır (Si♮). Donanımsız (`KeySignature.none`) dizeklerde davranış
+  değişmedi. Galeri 48-49 + mürekkep ölçen regresyon testleri eklendi.
+
 ## 0.3.1
 
 * **Font çözümü düzeltmesi (bağımlı uygulamada "tofu" kutuları).** Painter

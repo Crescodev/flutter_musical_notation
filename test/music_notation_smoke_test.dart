@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_music_core/flutter_music_core.dart';
 import 'package:flutter_musical_notation/flutter_musical_notation.dart';
@@ -33,6 +35,44 @@ MusicalValue _e(int index, int octave) => MusicalValue(
       duration: MusicalDuration.eighth,
       midiNotes: [MidiNote(index: index, octave: octave)],
     );
+
+
+/// Çizilen mürekkebi ölçer: RepaintBoundary'deki opak piksel sayısı. Donanım
+/// davranışını (aksidan yazıldı mı, yazılmadı mı) glif saymadan doğrular.
+Future<int> _inkOf(WidgetTester tester, MusicNotation notation) async {
+  final key = GlobalKey();
+  await tester.pumpWidget(
+    MaterialApp(
+      home: Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: RepaintBoundary(
+            key: key,
+            child: Container(
+              color: Colors.white,
+              width: 300,
+              height: 140,
+              child: notation,
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+  await tester.pump();
+  final boundary =
+      key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+  final image = (await tester.runAsync(() => boundary.toImage()))!;
+  final data = (await tester.runAsync(
+    () => image.toByteData(format: ui.ImageByteFormat.rawRgba),
+  ))!;
+  final bytes = data.buffer.asUint8List();
+  var dark = 0;
+  for (var i = 0; i < bytes.length; i += 4) {
+    if (bytes[i] < 128) dark++; // siyah çizim, beyaz zemin
+  }
+  return dark;
+}
 
 void main() {
   setUpAll(_loadFont);
@@ -256,6 +296,59 @@ void main() {
       ]),
       throwsAssertionError,
     );
+  });
+
+  group('donanım (key signature)', () {
+    MusicNotation staffWith(KeySignature key, MidiNote note) => MusicNotation(
+          keySignature: key,
+          drawTimeSignature: false,
+          measures: [
+            NotationMeasure.singles([
+              MusicalValue(
+                duration: MusicalDuration.whole,
+                midiNotes: [note],
+              ),
+            ]),
+          ],
+        );
+
+    testWidgets('donanımın yazdığı arıza nota önünde tekrarlanmaz',
+        (tester) async {
+      const faMajor = KeySignature(-1); // Si♭
+      // Si♭4 — arıza donanımda; nota önüne bemol DÜŞMEMELİ.
+      final siBemol = await _inkOf(
+        tester,
+        staffWith(faMajor,
+            MidiNote(index: 6, octave: 4, accidental: MusicalAccidental.flat)),
+      );
+      // Do5 — donanımda olmayan harf, arızasız. Aynı dizek + aynı donanım +
+      // aynı notabaşı: mürekkep neredeyse birebir aynı olmalı.
+      final referans =
+          await _inkOf(tester, staffWith(faMajor, MidiNote(index: 0, octave: 5)));
+      // Si♮4 — donanımı bozar; natürel yazılmalı → belirgin fazla mürekkep.
+      final siNaturel = await _inkOf(
+        tester,
+        staffWith(faMajor, MidiNote(index: 6, octave: 4)),
+      );
+
+      expect(siNaturel, greaterThan(siBemol),
+          reason: 'donanımı bozan nota natürel almalı');
+      expect((siBemol - referans).abs(), lessThan((siNaturel - siBemol) ~/ 2),
+          reason: 'Si♭ için nota önüne ikinci bir bemol çizilmemeli');
+    });
+
+    testWidgets('donanım dışı harfte notanın arızası yazılır', (tester) async {
+      const solMajor = KeySignature(1); // Fa♯
+      final doDiyez = await _inkOf(
+        tester,
+        staffWith(solMajor,
+            MidiNote(index: 0, octave: 5, accidental: MusicalAccidental.sharp)),
+      );
+      final doNaturel =
+          await _inkOf(tester, staffWith(solMajor, MidiNote(index: 0, octave: 5)));
+      expect(doDiyez, greaterThan(doNaturel),
+          reason: 'donanımda olmayan Do harfinde ♯ nota önünde yazılır');
+    });
   });
 
   test('shouldRepaint reacts to field changes', () {

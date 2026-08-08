@@ -910,6 +910,9 @@ class MusicNotationPainter extends CustomPainter {
 
   // ---- Aksidan / ek çizgi / nokta ----------------------------------------------
 
+  /// Nota önü aksidanları — **donanım farkında**: donanımın zaten yazdığı
+  /// arıza nota önünde tekrarlanmaz, donanımı bozan nota natürelle iptal
+  /// edilir (`KeySignature.writtenAccidentalFor`).
   void _drawAccidentals(
     Canvas canvas,
     List<MidiNote> notes,
@@ -919,15 +922,16 @@ class MusicNotationPainter extends CustomPainter {
   ) {
     // En tizden (üst) pese doğru; dikey olarak çakışan (2.5 sp'den yakın)
     // aksidanları bir öncekinin soluna kaydırarak istifler.
-    final withAcc = <({int index, MidiNote note})>[
+    final withAcc = <({int index, MusicalAccidental accidental})>[
       for (var i = 0; i < notes.length; i++)
-        if (notes[i].accidental != null) (index: indices[i], note: notes[i]),
+        if (keySignature.writtenAccidentalFor(notes[i]) case final acc?)
+          (index: indices[i], accidental: acc),
     ]..sort((a, b) => a.index.compareTo(b.index));
 
     final baseRight = blockLeft - 0.3 * _sp;
     double? prevY, prevLeft;
     for (final entry in withAcc) {
-      final glyph = Smufl.accidental(entry.note.accidental!);
+      final glyph = Smufl.accidental(entry.accidental);
       final w = _glyphWidth(glyph);
       final y = _yForIndex(entry.index);
       final double right;

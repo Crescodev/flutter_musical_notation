@@ -1154,5 +1154,40 @@ void main() {
       width: 390,
       height: 110,
     );
+
+    // 48) Donanım — Fa majör (1 bemol): Si♭ arızası donanımda yazılır, nota
+    // önünde tekrarlanmaz; donanımı bozan Si♮ natürelle iptal edilir.
+    await _render(
+      tester,
+      '48_donanim_fa_major',
+      MusicNotation(
+        keySignature: const KeySignature(-1),
+        measures: [
+          NotationMeasure.singles([
+            _v(MusicalDuration.half, [_n(6, 4, MusicalAccidental.flat)]),
+            _v(MusicalDuration.half, [_n(6, 4)]),
+          ]),
+        ],
+      ),
+    );
+
+    // 49) Donanım — Do♯ minör (4 diyez): gam sesleri arızasız görünür.
+    await _render(
+      tester,
+      '49_donanim_do_diyez_minor',
+      MusicNotation(
+        keySignature: const KeySignature(4),
+        measures: [
+          NotationMeasure.singles([
+            _v(MusicalDuration.half, [_n(0, 4, MusicalAccidental.sharp)]),
+            _v(MusicalDuration.half, [_n(2, 4)]),
+          ]),
+          NotationMeasure.singles([
+            _v(MusicalDuration.half, [_n(4, 4, MusicalAccidental.sharp)]),
+            _v(MusicalDuration.half, [_n(0, 5, MusicalAccidental.sharp)]),
+          ]),
+        ],
+      ),
+    );
   });
 }
