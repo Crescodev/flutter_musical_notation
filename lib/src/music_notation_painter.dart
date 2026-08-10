@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_music_core/flutter_music_core.dart';
+import 'package:flutter_musical_notation/src/measure_accidentals.dart';
 import 'package:flutter_musical_notation/src/notation_layout.dart';
 import 'package:flutter_musical_notation/src/notation_measure.dart';
 import 'package:flutter_musical_notation/src/smufl.dart';
@@ -144,7 +145,9 @@ class MusicNotationPainter extends CustomPainter {
     double sizeSp = 4,
   }) {
     final tp = _painter(glyph, color: color, sizeSp: sizeSp);
-    final baseline = tp.computeDistanceToActualBaseline(TextBaseline.alphabetic);
+    final baseline = tp.computeDistanceToActualBaseline(
+      TextBaseline.alphabetic,
+    );
     tp.paint(canvas, Offset(originX, originY - baseline));
     return tp.width;
   }
@@ -220,18 +223,18 @@ class MusicNotationPainter extends CustomPainter {
 
   /// Bu yapılandırmanın [size] için yerleşimi — widget hit-test'te kullanır.
   NotationLayout layoutFor(Size size) => NotationLayout(
-        size: size,
-        beatsPerMeasure: beatsPerMeasure,
-        beatUnit: beatUnit,
-        clef: clef,
-        keySignature: keySignature,
-        isEnd: isEnd,
-        drawClef: drawClef,
-        drawTimeSignature: drawTimeSignature,
-        rhythmStaff: rhythmStaff,
-        measures: measures,
-        measuresPerLine: measuresPerLine,
-      );
+    size: size,
+    beatsPerMeasure: beatsPerMeasure,
+    beatUnit: beatUnit,
+    clef: clef,
+    keySignature: keySignature,
+    isEnd: isEnd,
+    drawClef: drawClef,
+    drawTimeSignature: drawTimeSignature,
+    rhythmStaff: rhythmStaff,
+    measures: measures,
+    measuresPerLine: measuresPerLine,
+  );
 
   /// Zaman-konumlu işaretler: her biri kendi anının x'inde, o anın **kendi
   /// satırının** dizek bandının **altına** çizilir (kullanıcı tap geri
@@ -243,11 +246,12 @@ class MusicNotationPainter extends CustomPainter {
       // Notaların/barın (±2 sp) altında; ek çizgilere ve saplara girmeyecek yer.
       final y = centerY + 3.2 * _sp;
       final r = 0.7 * _sp;
-      final paint = Paint()
-        ..color = marker.color
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = Smufl.stemThickness * _sp * 1.6
-        ..strokeCap = StrokeCap.round;
+      final paint =
+          Paint()
+            ..color = marker.color
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = Smufl.stemThickness * _sp * 1.6
+            ..strokeCap = StrokeCap.round;
       switch (marker.kind) {
         case NotationMarkerKind.dot:
           canvas.drawCircle(Offset(x, y), r, _fill(marker.color));
@@ -274,9 +278,10 @@ class MusicNotationPainter extends CustomPainter {
     if (time == null) return;
     final x = _layout.xForTime(time);
     final centerY = _layout.centerYOf(_layout.lineForTime(time));
-    final paint = Paint()
-      ..color = playheadColor ?? color
-      ..strokeWidth = Smufl.stemThickness * _sp * 1.5;
+    final paint =
+        Paint()
+          ..color = playheadColor ?? color
+          ..strokeWidth = Smufl.stemThickness * _sp * 1.5;
     // Porte yüksekliğinin biraz dışına taşar ki notaların arasında kaybolmasın.
     canvas.drawLine(
       Offset(x, centerY - 3 * _sp),
@@ -293,7 +298,8 @@ class MusicNotationPainter extends CustomPainter {
         Paint()
           ..color = color
           ..strokeWidth = Smufl.staffLineThickness * _sp;
-    final right = _layout.regionLeftOf(line) +
+    final right =
+        _layout.regionLeftOf(line) +
         _layout.measuresInLine(line) * _layout.measureWidthOf(line);
     final staffLineCount = rhythmStaff ? 1 : 5;
     for (int k = 0; k < staffLineCount; k++) {
@@ -412,6 +418,11 @@ class MusicNotationPainter extends CustomPainter {
   // Notalar
   // ---------------------------------------------------------------------------
 
+  /// Ölçü içi arıza hafızası (gravür kuralı — bkz. [MeasureAccidentals]).
+  /// Notalar zaman sırasında çizildiği için akış boyunca güncellenir; her
+  /// ölçünün başında sıfırlanır.
+  late final MeasureAccidentals _accidentals = MeasureAccidentals(keySignature);
+
   /// [line] satırındaki ölçülerin notaları.
   void _drawNotes(Canvas canvas, int line) {
     final measureTimeLength = _layout.measureTimeLength;
@@ -422,6 +433,8 @@ class MusicNotationPainter extends CustomPainter {
     if (last > measures.length) last = measures.length;
 
     for (var m = first; m < last; m++) {
+      // Arıza hafızası **ölçü sınırında** sıfırlanır (donanım yeniden geçerli).
+      _accidentals.reset();
       final measure = measures[m];
       assert(
         measure.timeLength <= measureTimeLength + 1e-9,
@@ -463,8 +476,9 @@ class MusicNotationPainter extends CustomPainter {
   ({List<MidiNote> notes, List<int> indices}) _layoutIndices(
     MusicalValue value,
   ) {
-    final notes = value.midiNotes.toList()
-      ..sort((a, b) => a.expandedIndex.compareTo(b.expandedIndex));
+    final notes =
+        value.midiNotes.toList()
+          ..sort((a, b) => a.expandedIndex.compareTo(b.expandedIndex));
     return (notes: notes, indices: notes.map(_staffIndex).toList());
   }
 
@@ -579,7 +593,8 @@ class MusicNotationPainter extends CustomPainter {
     }
     _tiePrev = (
       heads: [
-        for (final h in heads) (index: h.index, xLeft: h.x, xRight: h.x + headW),
+        for (final h in heads)
+          (index: h.index, xLeft: h.x, xRight: h.x + headW),
       ],
     );
     _tiePrevLine = _currentLine;
@@ -715,7 +730,12 @@ class MusicNotationPainter extends CustomPainter {
       final stemRightX = attachBottom.dx;
       final stemTopY = topY - stemLen;
       canvas.drawRect(
-        Rect.fromLTRB(stemRightX - stemThk, stemTopY, stemRightX, attachBottom.dy),
+        Rect.fromLTRB(
+          stemRightX - stemThk,
+          stemTopY,
+          stemRightX,
+          attachBottom.dy,
+        ),
         _fill(color),
       );
       if (flag != null) {
@@ -731,7 +751,12 @@ class MusicNotationPainter extends CustomPainter {
       final stemLeftX = attachTop.dx;
       final stemBottomY = bottomY + stemLen;
       canvas.drawRect(
-        Rect.fromLTRB(stemLeftX, attachTop.dy, stemLeftX + stemThk, stemBottomY),
+        Rect.fromLTRB(
+          stemLeftX,
+          attachTop.dy,
+          stemLeftX + stemThk,
+          stemBottomY,
+        ),
         _fill(color),
       );
       if (flag != null) {
@@ -799,12 +824,20 @@ class MusicNotationPainter extends CustomPainter {
       final minIndex = indices.reduce((a, b) => a < b ? a : b);
       final maxIndex = indices.reduce((a, b) => a > b ? a : b);
       if (stemUp) {
-        final attach = _anchor(origins[i], _yForIndex(maxIndex), Smufl.stemUpSE);
+        final attach = _anchor(
+          origins[i],
+          _yForIndex(maxIndex),
+          Smufl.stemUpSE,
+        );
         stemX.add(attach.dx); // sağ kenar
         attachY.add(attach.dy);
         idealTip.add(_yForIndex(minIndex) - stemLen);
       } else {
-        final attach = _anchor(origins[i], _yForIndex(minIndex), Smufl.stemDownNW);
+        final attach = _anchor(
+          origins[i],
+          _yForIndex(minIndex),
+          Smufl.stemDownNW,
+        );
         stemX.add(attach.dx); // sol kenar
         attachY.add(attach.dy);
         idealTip.add(_yForIndex(maxIndex) + stemLen);
@@ -910,9 +943,10 @@ class MusicNotationPainter extends CustomPainter {
 
   // ---- Aksidan / ek çizgi / nokta ----------------------------------------------
 
-  /// Nota önü aksidanları — **donanım farkında**: donanımın zaten yazdığı
-  /// arıza nota önünde tekrarlanmaz, donanımı bozan nota natürelle iptal
-  /// edilir (`KeySignature.writtenAccidentalFor`).
+  /// Nota önü aksidanları — **donanım + ölçü hafızası farkında**: donanımın
+  /// zaten yazdığı arıza nota önünde tekrarlanmaz, ölçü içinde bir kez yazılan
+  /// arıza tekrarlanmaz, o arızadan dönen nota natürelle (ya da kendi
+  /// arızasıyla) iptal edilir. Bkz. [_accidentalFor].
   void _drawAccidentals(
     Canvas canvas,
     List<MidiNote> notes,
@@ -924,7 +958,7 @@ class MusicNotationPainter extends CustomPainter {
     // aksidanları bir öncekinin soluna kaydırarak istifler.
     final withAcc = <({int index, MusicalAccidental accidental})>[
       for (var i = 0; i < notes.length; i++)
-        if (keySignature.writtenAccidentalFor(notes[i]) case final acc?)
+        if (_accidentals.accidentalFor(notes[i]) case final acc?)
           (index: indices[i], accidental: acc),
     ]..sort((a, b) => a.index.compareTo(b.index));
 
@@ -963,21 +997,32 @@ class MusicNotationPainter extends CustomPainter {
     void drawSide(bool below) {
       final sideHeads =
           heads
-              .where((h) => below ? h.index > _bottomLineIndex : h.index < _topLineIndex)
+              .where(
+                (h) =>
+                    below
+                        ? h.index > _bottomLineIndex
+                        : h.index < _topLineIndex,
+              )
               .toList();
       if (sideHeads.isEmpty) return;
-      final left = sideHeads.map((h) => h.x).reduce((a, b) => a < b ? a : b) - ext;
+      final left =
+          sideHeads.map((h) => h.x).reduce((a, b) => a < b ? a : b) - ext;
       final right =
-          sideHeads.map((h) => h.x + headW).reduce((a, b) => a > b ? a : b) + ext;
+          sideHeads.map((h) => h.x + headW).reduce((a, b) => a > b ? a : b) +
+          ext;
 
       if (below) {
-        final maxIndex = sideHeads.map((h) => h.index).reduce((a, b) => a > b ? a : b);
+        final maxIndex = sideHeads
+            .map((h) => h.index)
+            .reduce((a, b) => a > b ? a : b);
         for (var L = _bottomLineIndex + 2; L <= maxIndex; L += 2) {
           final y = _yForIndex(L);
           canvas.drawLine(Offset(left, y), Offset(right, y), paint);
         }
       } else {
-        final minIndex = sideHeads.map((h) => h.index).reduce((a, b) => a < b ? a : b);
+        final minIndex = sideHeads
+            .map((h) => h.index)
+            .reduce((a, b) => a < b ? a : b);
         for (var L = _topLineIndex - 2; L >= minIndex; L -= 2) {
           final y = _yForIndex(L);
           canvas.drawLine(Offset(left, y), Offset(right, y), paint);
@@ -995,14 +1040,20 @@ class MusicNotationPainter extends CustomPainter {
     double headW,
     Color color,
   ) {
-    final maxRight =
-        heads.map((h) => h.x + headW).reduce((a, b) => a > b ? a : b);
+    final maxRight = heads
+        .map((h) => h.x + headW)
+        .reduce((a, b) => a > b ? a : b);
     final dotX = maxRight + 0.35 * _sp;
     for (final h in heads) {
       var index = h.index;
       if (index.isOdd) index -= 1; // çizgideki nota → bir üst boşluk
-      _drawGlyph(canvas, Smufl.ch(Smufl.augmentationDot), dotX, _yForIndex(index),
-          color: color);
+      _drawGlyph(
+        canvas,
+        Smufl.ch(Smufl.augmentationDot),
+        dotX,
+        _yForIndex(index),
+        color: color,
+      );
     }
   }
 

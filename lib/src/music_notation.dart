@@ -110,7 +110,8 @@ class MusicNotation extends StatelessWidget {
   /// overlay katmanında çizilir ki imleç hareket ederken notasyon (dizek,
   /// anahtar glifi, notalar) yeniden çizilmesin (performans). [layout]
   /// verilirse overlay ile aynı yerleşim paylaşılır.
-  MusicNotationPainter _painter({NotationLayout? layout}) => MusicNotationPainter(
+  MusicNotationPainter _painter({NotationLayout? layout}) =>
+      MusicNotationPainter(
         beatsPerMeasure: beatsPerMeasure,
         beatUnit: beatUnit,
         color: color,
@@ -227,9 +228,10 @@ class _PlayheadPainter extends CustomPainter {
     final sp = layout.sp;
     final x = layout.xForTime(time);
     final centerY = layout.centerYOf(layout.lineForTime(time));
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = sp * 0.18; // ≈ stemThickness × 1.5
+    final paint =
+        Paint()
+          ..color = color
+          ..strokeWidth = sp * 0.18; // ≈ stemThickness × 1.5
     // Porte yüksekliğinin biraz dışına taşar ki notalar arasında kaybolmasın.
     canvas.drawLine(
       Offset(x, centerY - 3 * sp),

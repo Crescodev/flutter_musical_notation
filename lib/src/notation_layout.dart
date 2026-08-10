@@ -214,9 +214,10 @@ class NotationLayout {
     return tp.width;
   }
 
-  double get clefWidth => rhythmStaff
-      ? _glyphWidth(Smufl.ch(Smufl.percussionClef))
-      : _glyphWidth(Smufl.clef(clef).glyph);
+  double get clefWidth =>
+      rhythmStaff
+          ? _glyphWidth(Smufl.ch(Smufl.percussionClef))
+          : _glyphWidth(Smufl.clef(clef).glyph);
 
   double get keySignatureWidth {
     final fifths = keySignature.fifths;
@@ -248,7 +249,8 @@ class NotationLayout {
     return regionLeftOf(line) + indexInLine * mw + mw * 0.06;
   }
 
-  double _innerWidth(int measureIndex) => measureWidthOf(lineOf(measureIndex)) * 0.88;
+  double _innerWidth(int measureIndex) =>
+      measureWidthOf(lineOf(measureIndex)) * 0.88;
 
   /// [measureIndex] ölçüsünde, ölçü başından [timeInMeasure] kadar sonraki
   /// anın x'i.
@@ -298,19 +300,21 @@ class NotationLayout {
           // Dikey hedef, ölçünün kendi SATIRININ bandıdır (çok satırlıda
           // dokunma başka satıra taşmaz).
           final line = lineOf(m);
-          out.add(NotationHit(
-            measureIndex: m,
-            elementIndex: e,
-            valueIndex: v,
-            value: value,
-            timeStart: m * measureTimeLength + cursorTime,
-            bounds: Rect.fromLTRB(
-              left,
-              line * lineHeight,
-              right,
-              (line + 1) * lineHeight,
+          out.add(
+            NotationHit(
+              measureIndex: m,
+              elementIndex: e,
+              valueIndex: v,
+              value: value,
+              timeStart: m * measureTimeLength + cursorTime,
+              bounds: Rect.fromLTRB(
+                left,
+                line * lineHeight,
+                right,
+                (line + 1) * lineHeight,
+              ),
             ),
-          ));
+          );
           cursorTime += value.timeLength;
         }
       }

@@ -1,3 +1,16 @@
+## 0.5.0
+
+- **Ölçü içi arıza (aksidan) hafızası** — gravür kuralı artık uygulanıyor:
+  bir notaya ölçü içinde yazılan arıza, aynı ölçüde aynı harf ve aynı
+  oktavdaki sonraki notalar için de geçerli. Ölçü çizgisinde donanım yeniden
+  geçerli olur.
+  - Aynı arıza tekrarlanmıyor.
+  - Arızalı sesten donanım hâline dönen nota **iptal işareti** (natürel /
+    kendi arızası) alıyor. Eskiden işaretsiz çiziliyordu: okuyucu kuralı
+    uygulayıp arızalı söylerdi, motor doğal ses beklerdi — nota ile ses
+    ayrışıyordu (sessiz yanlış).
+  - Mantık `MeasureAccidentals` sınıfında, saf ve test edilebilir.
+
 ## 0.4.1
 
 * **Donanım farkında aksidanlar.** Nota önü aksidanları artık

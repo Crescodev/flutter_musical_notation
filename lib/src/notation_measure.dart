@@ -17,8 +17,7 @@ class NotationMeasure {
       NotationMeasure([for (final v in values) Single(v)]);
 
   /// Birlik nota cinsinden toplam süre.
-  double get timeLength =>
-      elements.fold(0.0, (sum, e) => sum + e.timeLength);
+  double get timeLength => elements.fold(0.0, (sum, e) => sum + e.timeLength);
 }
 
 /// Ölçü içindeki dizim öğesi: tek değer ([Single]) veya kiriş grubu ([Beam]).
